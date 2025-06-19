@@ -10,17 +10,37 @@ import speech_recognition as sr
 
 from funcao_buscar_imagens import clica_na_imagem, IMGS
 
-# --- Configuração ---
+# --- Configuração de login ---
+if "logged" not in st.session_state:
+    st.session_state.logged = False
+
+def login():
+    st.title("🔒 Login")
+    user = st.text_input("Usuário")
+    pwd  = st.text_input("Senha", type="password")
+    if st.button("Entrar"):
+        if user == "luan" and pwd == "123":
+            st.session_state.logged = True
+            st.experimental_rerun()
+        else:
+            st.error("Usuário ou senha incorretos")
+
+if not st.session_state.logged:
+    login()
+    st.stop()
+
+# --- Resto do app (após login) ---
+# Configurações iniciais
 BASE_DIR = os.path.dirname(__file__)
 ImageGrab.grab = partial(ImageGrab.grab, all_screens=True)
 load_dotenv()
-ESAJ_CPF = os.getenv("ESAJ_CPF")
+ESAJ_CPF   = os.getenv("ESAJ_CPF")
 ESAJ_SENHA = os.getenv("ESAJ_SENHA")
 if not ESAJ_CPF or not ESAJ_SENHA:
     st.error("Configure ESAJ_CPF e ESAJ_SENHA no arquivo .env antes de usar.")
     st.stop()
 
-# --- Função de reconhecimento de voz ---
+# Reconhecimento de voz
 def ouvir_microfone(timeout: int = 10) -> str | None:
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
@@ -31,24 +51,21 @@ def ouvir_microfone(timeout: int = 10) -> str | None:
         except Exception:
             return None
 
-# --- Processamento de entradas ---
+# Processamento de entradas
 def processar_documento(texto: str) -> str | None:
     digitos = ''.join(filter(str.isdigit, texto or ''))
     return digitos if len(digitos) == 11 else None
-
 
 def processar_numero_processo(texto: str) -> str | None:
     digitos = ''.join(filter(str.isdigit, texto or ''))
     return digitos if len(digitos) == 20 else None
 
-# --- Automação de consulta ---
+# Automação de consulta
 def executar_consulta(valor: str, tipo: str) -> None:
     clica_na_imagem("16_e_saj", pasta=IMGS)
     sleep(7)
-    pyautogui.write(ESAJ_CPF, interval=0.1)
-    pyautogui.press('tab'); sleep(1)
-    pyautogui.write(ESAJ_SENHA, interval=0.1)
-    pyautogui.press('enter'); sleep(7)
+    pyautogui.write(ESAJ_CPF, interval=0.1); pyautogui.press('tab'); sleep(1)
+    pyautogui.write(ESAJ_SENHA, interval=0.1); pyautogui.press('enter'); sleep(7)
     pyperclip.copy('https://www2.tjal.jus.br/cpopg/open.do?gateway=true')
     pyautogui.hotkey('ctrl', 't'); sleep(1)
     pyautogui.hotkey('ctrl', 'v'); pyautogui.press('enter'); sleep(5)
@@ -60,10 +77,10 @@ def executar_consulta(valor: str, tipo: str) -> None:
             sleep(0.5); pyautogui.press('tab'); break
     pyperclip.copy(valor); pyautogui.hotkey('ctrl','v'); sleep(1); pyautogui.press('enter')
 
-# --- Interface Streamlit ---
+# Interface principal
 st.set_page_config(page_title="Consulta e-SAJ", layout="wide")
 st.title("📑 Sistema de Consulta de Processos - e-SAJ")
-st.markdown("Sistema automatizado com interface por voz e manual para Tribunal de Justiça de Alagoas.")
+st.markdown("Sistema automatizado com interface por voz e manual para TJ-AL.")
 
 tab1, tab2 = st.tabs(["Manual", "Por Voz"])
 
