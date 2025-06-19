@@ -4,4 +4,4 @@ Pillow==11.2.1
 PyAutoGUI==0.9.54
 pyperclip==1.9.0
 SpeechRecognition==3.14.3
-sounddevice==0.4.7
++gTTS==2.4.2
